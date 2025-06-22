@@ -18,9 +18,10 @@ type Message = {
 
 type ChatTabProps = {
     context: string;
+    apiKey: string;
 };
 
-export default function ChatTab({ context }: ChatTabProps) {
+export default function ChatTab({ context, apiKey }: ChatTabProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +44,7 @@ export default function ChatTab({ context }: ChatTabProps) {
         setIsLoading(true);
 
         try {
-            const result = await textChatCompletion({ context, message: currentInput });
+            const result = await textChatCompletion({ context, message: currentInput, apiKey });
             const aiMessage: Message = { sender: 'ai', text: result.response };
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {

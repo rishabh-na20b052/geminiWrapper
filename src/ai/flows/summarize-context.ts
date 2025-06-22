@@ -9,9 +9,12 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
+import {genkit} from 'genkit';
 import {z} from 'genkit';
 
 const SummarizeContextInputSchema = z.object({
+  apiKey: z.string().optional(),
   context: z.string().describe('The context to summarize, can be text or image data URI.'),
 });
 export type SummarizeContextInput = z.infer<typeof SummarizeContextInputSchema>;
@@ -22,12 +25,27 @@ const SummarizeContextOutputSchema = z.object({
 export type SummarizeContextOutput = z.infer<typeof SummarizeContextOutputSchema>;
 
 export async function summarizeContext(input: SummarizeContextInput): Promise<SummarizeContextOutput> {
-  return summarizeContextFlow(input);
+  const { apiKey, ...promptInput } = input;
+  if (apiKey) {
+    const customAi = genkit({
+      plugins: [googleAI({ apiKey })],
+      model: 'googleai/gemini-1.5-flash-latest',
+    });
+    const customPrompt = customAi.definePrompt({
+      name: 'summarizeContextPrompt_custom',
+      input: { schema: z.object({ context: z.string() }) },
+      output: { schema: SummarizeContextOutputSchema },
+      prompt: `Summarize the following context in a concise and informative way:\n\n{{#if (startsWith context "data:")}}\n  Context (Image):\n  {{media url=context}}\n{{else}}\n  Context (Text):\n{{{context}}}\n{{/if}}\n`,
+    });
+    const { output } = await customPrompt({ ...promptInput, startsWith });
+    return output!;
+  }
+  return summarizeContextFlow(promptInput);
 }
 
 const prompt = ai.definePrompt({
   name: 'summarizeContextPrompt',
-  input: {schema: SummarizeContextInputSchema},
+  input: {schema: SummarizeContextInputSchema.omit({apiKey: true})},
   output: {schema: SummarizeContextOutputSchema},
   prompt: `Summarize the following context in a concise and informative way:\n\n{{#if (startsWith context "data:")}}
   Context (Image):
@@ -44,7 +62,7 @@ function startsWith(str: string, prefix: string): boolean {
 const summarizeContextFlow = ai.defineFlow(
   {
     name: 'summarizeContextFlow',
-    inputSchema: SummarizeContextInputSchema,
+    inputSchema: SummarizeContextInputSchema.omit({apiKey: true}),
     outputSchema: SummarizeContextOutputSchema,
   },
   async input => {

@@ -12,6 +12,7 @@ export default function Home() {
   const [context, setContext] = useState<string>("");
   const [contextSummary, setContextSummary] = useState<string>("");
   const [isContextLoading, setIsContextLoading] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>("");
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-background font-body">
@@ -38,6 +39,8 @@ export default function Home() {
           </TabsList>
           <TabsContent value="settings" className="mt-6">
             <SettingsTab
+              apiKey={apiKey}
+              setApiKey={setApiKey}
               setContext={setContext}
               contextSummary={contextSummary}
               setContextSummary={setContextSummary}
@@ -46,10 +49,10 @@ export default function Home() {
             />
           </TabsContent>
           <TabsContent value="chat" className="mt-6">
-            <ChatTab context={context || contextSummary} />
+            <ChatTab context={context || contextSummary} apiKey={apiKey} />
           </TabsContent>
           <TabsContent value="voice" className="mt-6">
-            <VoiceTab context={context || contextSummary} />
+            <VoiceTab context={context || contextSummary} apiKey={apiKey} />
           </TabsContent>
         </Tabs>
       </div>

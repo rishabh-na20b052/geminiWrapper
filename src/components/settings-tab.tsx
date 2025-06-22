@@ -11,6 +11,8 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type SettingsTabProps = {
+    apiKey: string;
+    setApiKey: (key: string) => void;
     setContext: (context: string) => void;
     contextSummary: string;
     setContextSummary: (summary: string) => void;
@@ -18,7 +20,7 @@ type SettingsTabProps = {
     setIsContextLoading: (loading: boolean) => void;
 };
 
-export default function SettingsTab({ setContext, contextSummary, setContextSummary, isContextLoading, setIsContextLoading }: SettingsTabProps) {
+export default function SettingsTab({ apiKey, setApiKey, setContext, contextSummary, setContextSummary, isContextLoading, setIsContextLoading }: SettingsTabProps) {
     const [textContext, setTextContext] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [fileKey, setFileKey] = useState(Date.now());
@@ -45,7 +47,7 @@ export default function SettingsTab({ setContext, contextSummary, setContextSumm
 
         if (currentContext) {
             try {
-                const result = await summarizeContext({ context: currentContext });
+                const result = await summarizeContext({ context: currentContext, apiKey });
                 setContextSummary(result.summary);
             } catch (error) {
                 console.error("Error summarizing context:", error);
@@ -66,9 +68,22 @@ export default function SettingsTab({ setContext, contextSummary, setContextSumm
         <Card className="overflow-hidden">
             <CardHeader>
                 <CardTitle>Set Context</CardTitle>
-                <CardDescription>Provide text or an image as context for your conversations. You can also leave it empty.</CardDescription>
+                <CardDescription>Provide an API key, and text or an image as context for your conversations. You can also leave context empty.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+                <div className="grid gap-2">
+                    <Label htmlFor="api-key">Google AI API Key (Optional)</Label>
+                    <Input
+                        id="api-key"
+                        type="password"
+                        placeholder="Enter your API key to override default"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                    />
+                     <p className="text-xs text-muted-foreground">
+                        Your key is stored in memory and only used for this session.
+                    </p>
+                </div>
                 <div className="grid gap-2">
                     <Label htmlFor="text-context">Text Context</Label>
                     <Textarea

@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 
 type VoiceTabProps = {
     context: string;
+    apiKey: string;
 };
 
-export default function VoiceTab({ context }: VoiceTabProps) {
+export default function VoiceTab({ context, apiKey }: VoiceTabProps) {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export default function VoiceTab({ context }: VoiceTabProps) {
         setAudioUrl(null);
 
         try {
-            const result = await voiceChatCompletion({ context: context, query: input });
+            const result = await voiceChatCompletion({ context: context, query: input, apiKey });
             setAudioUrl(result.media);
         } catch (error) {
             console.error("Error with voice chat:", error);

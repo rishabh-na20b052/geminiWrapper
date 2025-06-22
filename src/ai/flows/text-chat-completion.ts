@@ -9,9 +9,12 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
+import {genkit} from 'genkit';
 import {z} from 'genkit';
 
 const TextChatCompletionInputSchema = z.object({
+  apiKey: z.string().optional(),
   context: z.string().describe('The context for the conversation.'),
   message: z.string().describe('The user message.'),
 });
@@ -23,12 +26,27 @@ const TextChatCompletionOutputSchema = z.object({
 export type TextChatCompletionOutput = z.infer<typeof TextChatCompletionOutputSchema>;
 
 export async function textChatCompletion(input: TextChatCompletionInput): Promise<TextChatCompletionOutput> {
-  return textChatCompletionFlow(input);
+  const { apiKey, ...promptInput } = input;
+  if (apiKey) {
+    const customAi = genkit({
+      plugins: [googleAI({ apiKey })],
+      model: 'googleai/gemini-1.5-flash-latest',
+    });
+    const customPrompt = customAi.definePrompt({
+      name: 'textChatCompletionPrompt_custom',
+      input: { schema: z.object({ context: z.string(), message: z.string() }) },
+      output: { schema: TextChatCompletionOutputSchema },
+      prompt: `You are a helpful AI assistant. Use the context provided to respond to the user's message.\n\nContext: {{{context}}}\n\nUser Message: {{{message}}}\n\nResponse: `,
+    });
+    const { output } = await customPrompt(promptInput);
+    return output!;
+  }
+  return textChatCompletionFlow(promptInput);
 }
 
 const prompt = ai.definePrompt({
   name: 'textChatCompletionPrompt',
-  input: {schema: TextChatCompletionInputSchema},
+  input: {schema: TextChatCompletionInputSchema.omit({apiKey: true})},
   output: {schema: TextChatCompletionOutputSchema},
   prompt: `You are a helpful AI assistant. Use the context provided to respond to the user's message.\n\nContext: {{{context}}}\n\nUser Message: {{{message}}}\n\nResponse: `,
 });
@@ -36,7 +54,7 @@ const prompt = ai.definePrompt({
 const textChatCompletionFlow = ai.defineFlow(
   {
     name: 'textChatCompletionFlow',
-    inputSchema: TextChatCompletionInputSchema,
+    inputSchema: TextChatCompletionInputSchema.omit({apiKey: true}),
     outputSchema: TextChatCompletionOutputSchema,
   },
   async input => {

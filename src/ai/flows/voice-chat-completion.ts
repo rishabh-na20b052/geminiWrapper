@@ -10,10 +10,13 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
+import {genkit} from 'genkit';
 import {z} from 'genkit';
 import wav from 'wav';
 
 const VoiceChatCompletionInputSchema = z.object({
+  apiKey: z.string().optional(),
   context: z.string().describe('Context to guide the conversation.'),
   query: z.string().describe('User query to the AI agent.'),
 });
@@ -23,42 +26,6 @@ const VoiceChatCompletionOutputSchema = z.object({
   media: z.string().describe('The audio response from the AI agent as a data URI.'),
 });
 export type VoiceChatCompletionOutput = z.infer<typeof VoiceChatCompletionOutputSchema>;
-
-export async function voiceChatCompletion(input: VoiceChatCompletionInput): Promise<VoiceChatCompletionOutput> {
-  return voiceChatCompletionFlow(input);
-}
-
-const voiceChatCompletionFlow = ai.defineFlow(
-  {
-    name: 'voiceChatCompletionFlow',
-    inputSchema: VoiceChatCompletionInputSchema,
-    outputSchema: VoiceChatCompletionOutputSchema,
-  },
-  async (input) => {
-    const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' },
-          },
-        },
-      },
-      prompt: `${input.context}\nUser: ${input.query}`,
-    });
-    if (!media) {
-      throw new Error('no media returned');
-    }
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    return {
-      media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
-    };
-  }
-);
 
 async function toWav(
   pcmData: Buffer,
@@ -87,3 +54,50 @@ async function toWav(
   });
 }
 
+async function generateAudio(generator: any, input: Omit<VoiceChatCompletionInput, 'apiKey'>): Promise<VoiceChatCompletionOutput> {
+  const { media } = await generator.generate({
+    model: 'googleai/gemini-2.5-flash-preview-tts',
+    config: {
+      responseModalities: ['AUDIO'],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: 'Algenib' },
+        },
+      },
+    },
+    prompt: `${input.context}\nUser: ${input.query}`,
+  });
+  if (!media) {
+    throw new Error('no media returned');
+  }
+  const audioBuffer = Buffer.from(
+    media.url.substring(media.url.indexOf(',') + 1),
+    'base64'
+  );
+  return {
+    media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
+  };
+}
+
+export async function voiceChatCompletion(input: VoiceChatCompletionInput): Promise<VoiceChatCompletionOutput> {
+  const { apiKey, ...flowInput } = input;
+  if (apiKey) {
+    const customAi = genkit({
+      plugins: [googleAI({ apiKey })],
+      model: 'googleai/gemini-1.5-flash-latest'
+    });
+    return generateAudio(customAi, flowInput);
+  }
+  return voiceChatCompletionFlow(flowInput);
+}
+
+const voiceChatCompletionFlow = ai.defineFlow(
+  {
+    name: 'voiceChatCompletionFlow',
+    inputSchema: VoiceChatCompletionInputSchema.omit({apiKey: true}),
+    outputSchema: VoiceChatCompletionOutputSchema,
+  },
+  async (input) => {
+    return generateAudio(ai, input);
+  }
+);
