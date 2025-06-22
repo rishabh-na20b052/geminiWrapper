@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { voiceChatCompletion } from "@/ai/flows/voice-chat-completion";
+// import { voiceChatCompletion } from "@/ai/flows/voice-chat-completion";
 import { Loader2, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,30 +34,14 @@ export default function VoiceTab({ context, apiKey }: VoiceTabProps) {
     }, [audioUrl, toast]);
 
     const handleSpeak = async () => {
-        if (!input.trim()) return;
-        setIsLoading(true);
-        setAudioUrl(null);
-
-        try {
-            const result = await voiceChatCompletion({ context: context, query: input, apiKey });
-            setAudioUrl(result.media);
-        } catch (error) {
-            console.error("Error with voice chat:", error);
-            toast({
-                variant: "destructive",
-                title: "Voice Generation Error",
-                description: "Failed to generate a voice response.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        // AI functionality disabled for static export.
     };
 
     return (
         <Card className="overflow-hidden">
             <CardHeader>
                 <CardTitle>Voice Chat</CardTitle>
-                <CardDescription>Type your message and receive a voice response from the AI.</CardDescription>
+                <CardDescription>Type your message and receive a voice response from the AI. AI features are disabled for static deployment.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="flex gap-2">
@@ -65,11 +49,11 @@ export default function VoiceTab({ context, apiKey }: VoiceTabProps) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSpeak()}
-                        placeholder="What should the AI say?"
-                        disabled={isLoading}
+                        placeholder="AI features are disabled"
+                        disabled={true}
                         className="text-base"
                     />
-                    <Button onClick={handleSpeak} disabled={isLoading} className="shrink-0">
+                    <Button onClick={handleSpeak} disabled={true} className="shrink-0">
                         {isLoading ? <Loader2 className="mr-0 sm:mr-2 h-4 w-4 animate-spin" /> : <Volume2 className="mr-0 sm:mr-2 h-4 w-4" />}
                         <span className="hidden sm:inline">Speak</span>
                     </Button>

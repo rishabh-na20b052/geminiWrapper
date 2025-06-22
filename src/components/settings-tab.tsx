@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { summarizeContext } from "@/ai/flows/summarize-context";
+// import { summarizeContext } from "@/ai/flows/summarize-context";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,48 +28,18 @@ export default function SettingsTab({ apiKey, setApiKey, setContext, contextSumm
     const { toast } = useToast();
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const dataUrl = reader.result as string;
-                setTextContext(""); 
-                setImagePreview(dataUrl);
-            };
-            reader.readAsDataURL(file);
-        }
+        // AI functionality disabled for static export.
     };
 
     const handleSetContext = async () => {
-        setIsContextLoading(true);
-        setContextSummary("");
-        const currentContext = imagePreview || textContext;
-        setContext(currentContext);
-
-        if (currentContext) {
-            try {
-                const result = await summarizeContext({ context: currentContext, apiKey });
-                setContextSummary(result.summary);
-            } catch (error) {
-                console.error("Error summarizing context:", error);
-                setContextSummary("Failed to summarize context.");
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Could not summarize the provided context.",
-                });
-            }
-        } else {
-            setContextSummary("Context is empty. Ready for your questions!");
-        }
-        setIsContextLoading(false);
+        // AI functionality disabled for static export.
     };
 
     return (
         <Card className="overflow-hidden">
             <CardHeader>
                 <CardTitle>Set Context</CardTitle>
-                <CardDescription>Provide an API key, and text or an image as context for your conversations. You can also leave context empty.</CardDescription>
+                <CardDescription>Provide an API key, and text or an image as context for your conversations. AI features are disabled for static deployment.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid gap-2">
@@ -77,9 +47,10 @@ export default function SettingsTab({ apiKey, setApiKey, setContext, contextSumm
                     <Input
                         id="api-key"
                         type="password"
-                        placeholder="Enter your API key to override default"
+                        placeholder="AI features are disabled"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
+                        disabled={true}
                     />
                      <p className="text-xs text-muted-foreground">
                         Your key is stored in memory and only used for this session.
@@ -89,7 +60,7 @@ export default function SettingsTab({ apiKey, setApiKey, setContext, contextSumm
                     <Label htmlFor="text-context">Text Context</Label>
                     <Textarea
                         id="text-context"
-                        placeholder="Enter any text context here..."
+                        placeholder="AI features are disabled"
                         value={textContext}
                         onChange={(e) => {
                             setTextContext(e.target.value);
@@ -97,6 +68,7 @@ export default function SettingsTab({ apiKey, setApiKey, setContext, contextSumm
                             setFileKey(Date.now());
                         }}
                         rows={5}
+                        disabled={true}
                     />
                 </div>
                 <div className="relative">
@@ -111,16 +83,16 @@ export default function SettingsTab({ apiKey, setApiKey, setContext, contextSumm
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="image-context">Image Context</Label>
-                    <Input id="image-context" type="file" accept="image/*" onChange={handleImageUpload} key={fileKey}/>
+                    <Input id="image-context" type="file" accept="image/*" onChange={handleImageUpload} key={fileKey} disabled={true} />
                     {imagePreview && (
                         <div className="mt-2 rounded-md border p-2 flex justify-center bg-muted/50">
                             <img src={imagePreview} alt="Image context preview" className="rounded-md max-h-48 w-auto" />
                         </div>
                     )}
                 </div>
-                <Button onClick={handleSetContext} disabled={isContextLoading} className="w-full">
+                <Button onClick={handleSetContext} disabled={true} className="w-full">
                     {isContextLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Set Context
+                    Set Context (Disabled)
                 </Button>
                 {contextSummary && (
                     <div className="mt-4 p-4 bg-muted rounded-md text-sm animate-in fade-in-0 duration-500">

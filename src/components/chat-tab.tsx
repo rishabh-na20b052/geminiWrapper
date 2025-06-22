@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { textChatCompletion } from "@/ai/flows/text-chat-completion";
+// import { textChatCompletion } from "@/ai/flows/text-chat-completion";
 import { Loader2, Send, User, Bot } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,37 +35,14 @@ export default function ChatTab({ context, apiKey }: ChatTabProps) {
     }, [messages]);
 
     const handleSend = async () => {
-        if (!input.trim()) return;
-
-        const userMessage: Message = { sender: 'user', text: input };
-        setMessages(prev => [...prev, userMessage]);
-        const currentInput = input;
-        setInput("");
-        setIsLoading(true);
-
-        try {
-            const result = await textChatCompletion({ context, message: currentInput, apiKey });
-            const aiMessage: Message = { sender: 'ai', text: result.response };
-            setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
-            console.error("Error with text chat:", error);
-            const errorMessage: Message = { sender: 'ai', text: "Sorry, I encountered an error. Please try again." };
-            setMessages(prev => [...prev, errorMessage]);
-            toast({
-                variant: "destructive",
-                title: "Chat Error",
-                description: "Failed to get a response from the AI.",
-            })
-        } finally {
-            setIsLoading(false);
-        }
+        // AI functionality disabled for static export.
     };
 
     return (
         <Card className="overflow-hidden">
             <CardHeader>
                 <CardTitle>Text Chat</CardTitle>
-                <CardDescription>Chat with the AI based on the context you've set. The conversation is not remembered.</CardDescription>
+                <CardDescription>Chat with the AI based on the context you've set. The conversation is not remembered. AI features are disabled for static deployment.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col h-[55vh] sm:h-[60vh]">
@@ -111,11 +88,11 @@ export default function ChatTab({ context, apiKey }: ChatTabProps) {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-                            placeholder="Type your message..."
-                            disabled={isLoading}
+                            placeholder="AI features are disabled"
+                            disabled={true}
                             className="text-base"
                         />
-                        <Button onClick={handleSend} disabled={isLoading} size="icon" className="shrink-0">
+                        <Button onClick={handleSend} disabled={true} size="icon" className="shrink-0">
                             <Send className="h-5 w-5" />
                             <span className="sr-only">Send</span>
                         </Button>
