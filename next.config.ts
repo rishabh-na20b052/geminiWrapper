@@ -1,10 +1,12 @@
 import type {NextConfig} from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'export',
-  assetPrefix: '/geminiWrapper',
-  basePath: '/geminiWrapper',
+  assetPrefix: isProd ? '/geminiWrapper' : undefined,
+  basePath: isProd ? '/geminiWrapper' : undefined,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -21,6 +23,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  experimental: {
+    allowedDevOrigins: ['*.cloudworkstations.dev'],
   },
 };
 
