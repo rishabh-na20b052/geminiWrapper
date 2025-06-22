@@ -31,33 +31,37 @@ export async function summarizeContext(input: SummarizeContextInput): Promise<Su
       plugins: [googleAI({ apiKey })],
       model: 'googleai/gemini-1.5-flash-latest',
     });
+
+    const CustomPromptInputSchema = z.object({ context: z.string(), isImage: z.boolean() });
     const customPrompt = customAi.definePrompt({
       name: 'summarizeContextPrompt_custom',
-      input: { schema: z.object({ context: z.string() }) },
+      input: { schema: CustomPromptInputSchema },
       output: { schema: SummarizeContextOutputSchema },
-      prompt: `Summarize the following context in a concise and informative way:\n\n{{#if (startsWith context "data:")}}\n  Context (Image):\n  {{media url=context}}\n{{else}}\n  Context (Text):\n{{{context}}}\n{{/if}}\n`,
+      prompt: `Summarize the following context in a concise and informative way:\n\n{{#if isImage}}\n  Context (Image):\n  {{media url=context}}\n{{else}}\n  Context (Text):\n{{{context}}}\n{{/if}}\n`,
     });
-    const { output } = await customPrompt({ ...promptInput, startsWith });
+
+    const isImage = promptInput.context.startsWith('data:');
+    const { output } = await customPrompt({ ...promptInput, isImage });
     return output!;
   }
   return summarizeContextFlow(promptInput);
 }
 
+const PromptInputSchema = SummarizeContextInputSchema.omit({apiKey: true}).extend({
+  isImage: z.boolean(),
+});
+
 const prompt = ai.definePrompt({
   name: 'summarizeContextPrompt',
-  input: {schema: SummarizeContextInputSchema.omit({apiKey: true})},
+  input: {schema: PromptInputSchema},
   output: {schema: SummarizeContextOutputSchema},
-  prompt: `Summarize the following context in a concise and informative way:\n\n{{#if (startsWith context "data:")}}
+  prompt: `Summarize the following context in a concise and informative way:\n\n{{#if isImage}}
   Context (Image):
   {{media url=context}}
 {{else}}
   Context (Text):\n{{{context}}}\n{{/if}}
 `,
 });
-
-function startsWith(str: string, prefix: string): boolean {
-  return str.startsWith(prefix);
-}
 
 const summarizeContextFlow = ai.defineFlow(
   {
@@ -66,10 +70,8 @@ const summarizeContextFlow = ai.defineFlow(
     outputSchema: SummarizeContextOutputSchema,
   },
   async input => {
-    const {output} = await prompt( {
-      ...input,
-      startsWith
-    });
+    const isImage = input.context.startsWith('data:');
+    const {output} = await prompt({...input, isImage});
     return output!;
   }
 );
