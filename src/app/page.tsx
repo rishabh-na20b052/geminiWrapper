@@ -41,6 +41,7 @@ export default function Home() {
             <SettingsTab
               apiKey={apiKey}
               setApiKey={setApiKey}
+              context={""}
               setContext={setContext}
               contextSummary={contextSummary}
               setContextSummary={setContextSummary}

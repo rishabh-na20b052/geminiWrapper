@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 type SettingsTabProps = {
     apiKey: string;
     setApiKey: (key: string) => void;
+    context: string;
     setContext: (context: string) => void;
     contextSummary: string;
     setContextSummary: (summary: string) => void;
